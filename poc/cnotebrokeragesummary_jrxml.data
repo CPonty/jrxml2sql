@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ContractNoteBrokerageSumamry" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isFloatColumnFooter="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.jasperserver.reportUnit" value="/reports/trading/shares/reports/cnotebrokeragesummary"/>
+	<property name="ireport.jasperserver.url" value="http://tethys.gbst.net:8980/services/repository"/>
+	<style name="BlueBG" mode="Opaque">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{cnote-num_1}%2==0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#DDEAFC"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="LoggedInUser" class="com.jaspersoft.jasperserver.api.metadata.user.domain.User"/>
+	<parameter name="LoggedInUserRoles" class="java.util.Collection"/>
+	<parameter name="CLIENT_CODE" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA["110057"]]></parameterDescription>
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="groupBy" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA["ad.advcode"]]></parameterDescription>
+		<defaultValueExpression><![CDATA["br.brhcode"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="START_DATE" class="java.util.Date" isForPrompting="false">
+		<parameterDescription><![CDATA[new java.util.Date("2000/09/20")]]></parameterDescription>
+		<defaultValueExpression><![CDATA[new java.util.Date(java.lang.System.currentTimeMillis() - (3 * 24 * 3600 * 1000))]]></defaultValueExpression>
+	</parameter>
+	<parameter name="END_DATE" class="java.util.Date" isForPrompting="false">
+		<parameterDescription><![CDATA[new java.util.Date("2000/09/20")]]></parameterDescription>
+		<defaultValueExpression><![CDATA[new java.util.Date()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ORG_CODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["tp6776"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="MARKET" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["ASX"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CURRENCY" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["AUD"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LoggedInUserFrontOfficeId" class="java.lang.Long" isForPrompting="false"/>
+	<parameter name="AccessibleSharesAdvisorCodes" class="java.util.Collection" isForPrompting="false"/>
+	<parameter name="AccessibleSharesAdvisorIds" class="java.util.Collection" isForPrompting="false"/>
+	<parameter name="AccessibleSharesBranchIds" class="java.util.Collection" isForPrompting="false"/>
+	<parameter name="AccessibleOrganisationCodes" class="java.util.Collection" isForPrompting="false"/>
+	<parameter name="BRANCH_CODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["NA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ADV_CODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["NA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EXEC_DATE" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new java.util.Date()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FIX" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select cn.orgcode, cn."cn-date", cn."cnote-num", cn.brok, cl.clcode, (trim(cl.salutation || ' ' || cl.initials || ' ' || cl.surname)) as "Name", (case when (cn."cont-type" = true) then 'Buy' else 'Sell' end) as "Descrip1", cn.units::integer as "Descrip2", trim(cn.seccode) || ' ' || (select ms.secdesc from "mkt-security" as ms where cn."market-id"=ms."market-id" and cn.secid = ms.secid and cn.cncycode = ms.cncycode) as "Descrip3",
+br.brhcode, br.brhname,
+ad.advname, ad.advcode, o.orgname
+
+from cnote as cn
+join client cl on cn.clcode = cl.clcode
+join branch as br on cn.branchid = br.branchid
+join advisor as ad on cn.advisorid = ad.advisorid
+join organisation o on o.orgcode = cn.orgcode
+
+where cn."cont-stat" <> 'C'
+and cn."trade-day" >= (select eod."trade-day" from eod where eod."eod-date" = date((case when $P{FIX} = true then cast($P{START_DATE} as date) else cast((cast($P{START_DATE} as date) + (current_date - cast($P{EXEC_DATE} as date))) as date) end)))
+and cn."trade-day" <= (select eod."trade-day" from eod where eod."eod-date" = date((cast($P{END_DATE} as date) + (current_date - cast($P{EXEC_DATE} as date)))))
+and cn."market-id" = $P{MARKET}
+and cn.cncycode  = $P{CURRENCY}
+and (cn.orgcode = $P{ORG_CODE} OR $P{ORG_CODE} = 'ALL')
+AND (br.orgcode = $P{ORG_CODE} OR $P{ORG_CODE} = 'ALL')
+AND (ad.orgcode = $P{ORG_CODE} OR $P{ORG_CODE} = 'ALL')
+and $X{IN,cn.branchid,AccessibleSharesBranchIds}
+and ($X{IN,cn.advisorid,AccessibleSharesAdvisorIds} OR ($X{IN,'ROLE_BRANCH_ACCESS',LoggedInUserRoles} OR $X{IN,'ROLE_BROKER_ACCESS',LoggedInUserRoles} ))
+and (cn.branchid::text = $P{BRANCH_CODE} OR $P{BRANCH_CODE} = '-1' OR $P{BRANCH_CODE} = '0')
+and (cn.advisorid::text = $P{ADV_CODE} OR $P{ADV_CODE} = '-1' OR $P{ADV_CODE} = '0')
+order by cn.orgcode, $P!{groupBy}, cn."cn-date", cn."cnote-num"]]>
+	</queryString>
+	<field name="orgcode" class="java.lang.String"/>
+	<field name="cn-date" class="java.sql.Timestamp"/>
+	<field name="cnote-num" class="java.lang.Integer"/>
+	<field name="brok" class="java.math.BigDecimal"/>
+	<field name="clcode" class="java.lang.String"/>
+	<field name="Name" class="java.lang.String"/>
+	<field name="Descrip1" class="java.lang.String"/>
+	<field name="Descrip2" class="java.lang.Integer"/>
+	<field name="Descrip3" class="java.lang.String"/>
+	<field name="brhcode" class="java.lang.String"/>
+	<field name="brhname" class="java.lang.String"/>
+	<field name="advname" class="java.lang.String"/>
+	<field name="advcode" class="java.lang.String"/>
+	<field name="orgname" class="java.lang.String"/>
+	<variable name="brok_1" class="java.math.BigDecimal" resetType="Group" resetGroup="Advisor or Branch Grouping" calculation="Sum">
+		<variableExpression><![CDATA[$F{brok}]]></variableExpression>
+	</variable>
+	<variable name="cnote-num_1" class="java.lang.Integer" resetType="Group" resetGroup="Advisor or Branch Grouping" calculation="Count">
+		<variableExpression><![CDATA[$F{cnote-num}]]></variableExpression>
+	</variable>
+	<group name="Advisor or Branch Grouping" minHeightToStartNewPage="50" keepTogether="true">
+		<groupExpression><![CDATA[( $P{groupBy}.compareToIgnoreCase("ad.advcode")==0 ? $F{advcode} : $F{brhcode} )]]></groupExpression>
+		<groupHeader>
+			<band height="20">
+				<textField>
+					<reportElement mode="Opaque" x="53" y="0" width="321" height="20" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($P{groupBy}.compareToIgnoreCase("ad.advcode")==0 ? "  Adviser - " + $F{advname} + " (" + $F{advcode} + ")": "  Branch - " + $F{brhname} + " (" + $F{brhcode} + ")" )]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="374" y="8" width="428" height="4" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="0" y="8" width="53" height="4" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="0" y="12" width="4" height="8" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="798" y="12" width="4" height="8" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="30">
+				<textField pattern="###,###,###,###,##0.00">
+					<reportElement mode="Opaque" x="666" y="2" width="120" height="20" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font isBold="true"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{brok_1}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement mode="Opaque" x="164" y="2" width="181" height="20" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["  Number of Contracts: " + $V{cnote-num_1}.toString()]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement mode="Opaque" x="345" y="2" width="321" height="20" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Total Brokerage for " + ( $P{groupBy}.compareToIgnoreCase("ad.advcode")==0 ? "Adviser - " + $F{advname} + " (" + $F{advcode} + ")": "Branch - " + $F{brhname} + " (" + $F{brhcode} + ")" )+ ":"]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="0" y="10" width="164" height="4" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="791" y="10" width="11" height="4" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="0" y="0" width="4" height="10" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="798" y="0" width="4" height="10" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+				</textField>
+				<textField pattern="" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="786" y="2" width="5" height="20" backcolor="#B8D1F4"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band height="89" splitType="Stretch">
+			<line>
+				<reportElement x="180" y="36" width="443" height="1" forecolor="#333333"/>
+			</line>
+			<image onErrorType="Blank">
+				<reportElement x="0" y="0" width="156" height="37"/>
+				<imageExpression><![CDATA["repo:logo"]]></imageExpression>
+			</image>
+			<textField pattern="">
+				<reportElement x="684" y="0" width="118" height="14"/>
+				<textElement>
+					<font isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("MMMMM dd, yyyy").format(new java.util.Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</background>
+	<title>
+		<band height="156" splitType="Stretch">
+			<staticText>
+				<reportElement x="635" y="116" width="67" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Market:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="635" y="136" width="67" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Currency:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="193" y="49" width="416" height="29"/>
+				<textElement textAlignment="Center">
+					<font size="20" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Contract Note Brokerage Summary]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="702" y="116" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{MARKET}.toUpperCase()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="702" y="136" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{CURRENCY}.toUpperCase()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="224" y="78" width="355" height="30"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("dd/MM/yyyy").format(($P{FIX}==true ? $P{START_DATE}: (new java.util.Date(($P{START_DATE}).getTime() + (new java.util.Date()).getTime() - ($P{EXEC_DATE}).getTime())))) + " to " + new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date(($P{END_DATE}).getTime() + (new java.util.Date()).getTime() - ($P{EXEC_DATE}).getTime()))]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="77" y="116" width="483" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{ORG_CODE} + " " + $F{orgname}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="116" width="77" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Organisation:]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="89" splitType="Stretch">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER}!=1]]></printWhenExpression>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="39" splitType="Stretch">
+			<staticText>
+				<reportElement x="8" y="1" width="62" height="32"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="36" width="802" height="1" forecolor="#103995"/>
+				<graphicElement>
+					<pen lineWidth="3.0"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="0" width="802" height="1" forecolor="#103995"/>
+				<graphicElement>
+					<pen lineWidth="3.0"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="70" y="1" width="50" height="32"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Contract
+Note]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="120" y="1" width="248" height="32"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Account]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="368" y="1" width="33" height="32"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="401" y="1" width="285" height="32"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Unit / Security]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="686" y="1" width="100" height="32"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[Brokerage]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement style="BlueBG" stretchType="RelativeToBandHeight" x="8" y="0" width="62" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cn-date}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="BlueBG" stretchType="RelativeToBandHeight" x="70" y="0" width="50" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cnote-num}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="BlueBG" stretchType="RelativeToBandHeight" x="120" y="0" width="248" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{clcode} + " - " + $F{Name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="BlueBG" stretchType="RelativeToBandHeight" x="368" y="0" width="33" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Descrip1}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="BlueBG" stretchType="RelativeToBandHeight" x="401" y="0" width="285" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0").format($F{Descrip2}) + " " + $F{Descrip3}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###,###,###,###,##0.00" isBlankWhenNull="true">
+				<reportElement style="BlueBG" stretchType="RelativeToBandHeight" x="686" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="false"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{brok}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="0" width="4" height="18" isPrintWhenDetailOverflows="true" backcolor="#B8D1F4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" mode="Opaque" x="798" y="0" width="4" height="18" isPrintWhenDetailOverflows="true" backcolor="#B8D1F4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement style="BlueBG" stretchType="RelativeToBandHeight" x="4" y="0" width="4" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement style="BlueBG" stretchType="RelativeToBandHeight" x="786" y="0" width="12" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="21" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="802" height="1"/>
+			</line>
+			<textField>
+				<reportElement x="682" y="1" width="80" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="762" y="1" width="40" height="20"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<noData>
+		<band height="324">
+			<textField>
+				<reportElement x="219" y="129" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Organisation:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="177" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Adviser:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="299" y="177" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[""+$P{ADV_CODE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="145" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Market:"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="219" y="113" width="380" height="16" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Search Criteria"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="209" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Start Date:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="87" width="380" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[((($P{FIX}==true
+    ? $P{START_DATE}
+    : (new java.util.Date(($P{START_DATE}).getTime() + (new java.util.Date()).getTime() - ($P{EXEC_DATE}).getTime())))>(new java.util.Date(($P{END_DATE}).getTime() + (new java.util.Date()).getTime() - ($P{EXEC_DATE}).getTime())))
+        ? "Start Date is greater than End Date. Please re-enter."
+        : (($P{FIX}==true
+            ? $P{START_DATE}
+            : (new java.util.Date(($P{START_DATE}).getTime() + (new java.util.Date()).getTime() - ($P{EXEC_DATE}).getTime()))) > (new java.util.Date())
+                ? "Date entered is too far into the future. Please re-enter."
+                : (new java.util.Date(($P{END_DATE}).getTime() + (new java.util.Date()).getTime() - ($P{EXEC_DATE}).getTime()) > (new java.util.Date())
+                    ? "Date entered is too far into the future. Please re-enter."
+                    : "There are no records that match your search criteria.")))]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="299" y="129" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{ORG_CODE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="299" y="145" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{MARKET}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="299" y="161" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{CURRENCY}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="161" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Currency:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="299" y="209" width="300" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[($P{FIX}==true ? $P{START_DATE}: (new java.util.Date(($P{START_DATE}).getTime() + (new java.util.Date()).getTime() - ($P{EXEC_DATE}).getTime())))]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="299" y="225" width="300" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[new java.util.Date(($P{END_DATE}).getTime() + (new java.util.Date()).getTime() - ($P{EXEC_DATE}).getTime())]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="225" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["End Date:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="299" y="193" width="300" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{BRANCH_CODE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="193" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Branch:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="299" y="241" width="300" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{groupBy}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="241" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Group By:"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="193" y="48" width="416" height="29"/>
+				<textElement textAlignment="Center">
+					<font size="20" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Contract Note Brokerage Summary]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="219" y="257" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Fix:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="299" y="257" width="300" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{FIX}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="273" width="80" height="17"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Exec Date:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="299" y="273" width="300" height="17"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{EXEC_DATE}]]></textFieldExpression>
+			</textField>
+		</band>
+	</noData>
+</jasperReport>

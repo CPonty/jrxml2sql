@@ -1,0 +1,1065 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MonthtoDateTradingStatistics" language="groovy" pageWidth="843" pageHeight="595" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="803" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true" isFloatColumnFooter="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.jasperserver.reportUnit" value="/reports/package_1/shares/reports/MonthToDateTradingStatistics"/>
+	<property name="ireport.jasperserver.url" value="http://tethys.gbst.net:8980/services/repository"/>
+	<property name="net.sf.jasperreports.governor.timeout" value="180000"/>
+	<style name="BlueBackground" mode="Opaque">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{DETAIL}==0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#91B4E4"/>
+		</conditionalStyle>
+	</style>
+	<style name="RedIfNeg1" style="BlueBackground" mode="Opaque" fill="Solid">
+		<conditionalStyle>
+			<style mode="Opaque" forecolor="#9E2323"/>
+		</conditionalStyle>
+	</style>
+	<style name="ReIfNeg2" style="BlueBackground" mode="Opaque" fill="Solid">
+		<conditionalStyle>
+			<style mode="Opaque" forecolor="#9E2323"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="AccessibleOrganisationCodes" class="java.util.Collection"/>
+	<parameter name="AccessibleSharesBranchIds" class="java.util.Collection"/>
+	<parameter name="AccessibleSharesAdvisorIds" class="java.util.Collection"/>
+	<parameter name="ORG_CODE" class="java.util.Collection"/>
+	<parameter name="BRANCH_CODE" class="java.util.Collection"/>
+	<parameter name="ADV_CODE" class="java.util.Collection"/>
+	<parameter name="MARKET" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["ASX"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CURRENCY" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["AUD"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="START_SEC" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="actMonth" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="YEAR" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="thedate" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new java.util.Date()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DETAIL" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EXEC_DATE" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new java.util.Date()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ORDER_BY" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{DETAIL} == 0 ? "a.advcode" : "b.brhcode"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ORDER" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA[$P{DETAIL} == 0 ? ($P{ORDER_BY}.equals("a.advcode") ? " b.brhcode, " + $P{ORDER_BY} : ($P{ORDER_BY}.equals("a.advname") ? " b.brhcode, " +  $P{ORDER_BY} : " b.brhcode, " + $P{ORDER_BY} +  " DESC" )) : ($P{ORDER_BY}.equals("b.brhcode") ? $P{ORDER_BY} : ($P{ORDER_BY}.equals("b.brhname") ? $P{ORDER_BY} : ($P{ORDER_BY} + " DESC")))]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GROUP_BY" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{DETAIL}.equals(0) ? " cn.BranchId, cn.AdvisorId" : " cn.BranchId"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SELECT_BY" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{DETAIL}.equals(0) ? "cn.BranchId, cn.AdvisorId" : "cn.BranchId, NULL as AdvisorId"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SELECT_BY_POST" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{DETAIL}.equals(0) ? "cn.BranchId, cn.AdvisorId" : "cn.BranchId, CAST(NULL AS INTEGER) as AdvisorId"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="JOIN_ON_POST" class="java.lang.String">
+		<defaultValueExpression><![CDATA[$P{DETAIL} == 0 ? "(foo2.advisorid = foo.advisorid and foo.branchid = foo2.branchid)" : "(foo.branchid = foo2.branchid)"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+    (select cn.seccode from cnote cn where (cast(cn.secid as varchar) = $P{START_SEC} OR $P{START_SEC} = '') limit 1 ) as seccode,
+    coalesce(foo2."eod-date",(select eod2."eod-date"
+			from eod eod2
+			where eod2.trading = true
+			and eod2."eod-date" <= date((cast($P{thedate} as date) + (current_date - cast($P{EXEC_DATE} as date))))
+			order by eod2."trade-day" desc limit 1)) as "ReportDate",
+    o.orgcode,
+    o.orgname,
+    b.brhcode,
+    b.brhname,
+    (CASE WHEN $P{DETAIL} = 0 THEN a."advcode" ELSE NULL END) AS "advcode",
+    (CASE WHEN $P{DETAIL} = 0 THEN a."advname" ELSE NULL END) AS "advname",
+    foo.consid as "MTD Consid",
+    foo.brok as "MTD Brok",
+    foo."count" as "MTD Count",
+    foo.brok/foo."count" as "MTD Brok per Contract",
+    (case when foo.consid=0 then 0 else foo.brok/foo.consid end) as "MTD Brok Rate",
+    coalesce(foo2.consid,0) as "Daily Consid",
+    coalesce(foo2.brok,0) as "Daily Brok",
+    coalesce(foo2."count",0) as "Daily Count",
+    coalesce(foo2.brok/foo2."count",0) as "Daily Brok per Contract",
+    coalesce((case when foo2.consid = 0 then 0 else foo2.brok/foo2.consid end),0) as "Daily Brok Rate"
+
+from(
+    select cn.orgcode,
+        $P!{SELECT_BY_POST},
+        sum(cn.consid) as "consid",
+        sum(cn.brok) as "brok",
+        count(cn."cnote-num") as "count"
+    from cnote cn
+    join eod eod on cn."trade-day" = eod."trade-day"
+    where eod.trading = true
+    and eod."eod-date" >= cast( date_part('year',date((cast($P{thedate} as date) + (current_date - cast($P{EXEC_DATE} as date)))))
+							|| '-' || date_part('month',date((cast($P{thedate} as date) + (current_date - cast($P{EXEC_DATE} as date)))))
+							|| '-01' as date)
+    and eod."eod-date" <= date((cast($P{thedate} as date) + (current_date - cast($P{EXEC_DATE} as date))))
+    and cn."market-id" = $P{MARKET}
+    and cn.cncycode = $P{CURRENCY}
+    and (cast(cn.secid as varchar) = $P{START_SEC} OR $P{START_SEC} = '')
+    and cn."cont-stat" not in ('R','C','V')
+    group by cn.orgcode, $P!{GROUP_BY}
+    ) AS foo
+
+JOIN organisation o on foo.orgcode = o.orgcode
+JOIN branch b on foo.branchid = b.branchid
+LEFT OUTER JOIN advisor a on foo.advisorid = a.advisorid
+
+
+
+LEFT OUTER JOIN(
+    select $P!{SELECT_BY_POST},
+    eod."eod-date",
+    sum(cn.consid) as "consid",
+    sum(cn.brok) as "brok",
+    count(cn."cnote-num") as "count"
+
+    from cnote cn
+    join eod eod on cn."trade-day" = eod."trade-day"
+    where eod.trading = true
+    and cn."market-id" = $P{MARKET}
+    and cn.cncycode = $P{CURRENCY}
+    and (cast(cn.secid as varchar) = $P{START_SEC} OR $P{START_SEC} = '')
+    and cn."cont-stat" not in ('R','C','V')
+    and eod."eod-date" = date((cast($P{thedate} as date) + (current_date - cast($P{EXEC_DATE} as date))))
+
+    group by eod."eod-date", $P!{GROUP_BY}
+) as foo2 on $P!{JOIN_ON_POST}
+
+WHERE (($X{IN,'ALL',ORG_CODE} AND $X{IN,foo.orgcode, AccessibleOrganisationCodes})  OR $X{IN, foo.orgcode, ORG_CODE})
+  AND (($X{IN,CAST('-1' AS VARCHAR),BRANCH_CODE} AND $X{IN,foo.branchid, AccessibleSharesBranchIds})   OR $X{IN, CAST(foo.branchid AS VARCHAR), BRANCH_CODE})
+  AND (($X{IN,'-1',ADV_CODE} AND $X{IN,foo.advisorid, AccessibleSharesAdvisorIds}) OR $X{IN, CAST(foo.advisorid AS VARCHAR), ADV_CODE} OR foo.advisorid IS NULL)
+
+  order by o.orgcode, $P!{ORDER}]]>
+	</queryString>
+	<field name="seccode" class="java.lang.String"/>
+	<field name="ReportDate" class="java.sql.Timestamp"/>
+	<field name="orgcode" class="java.lang.String"/>
+	<field name="orgname" class="java.lang.String"/>
+	<field name="brhcode" class="java.lang.String"/>
+	<field name="brhname" class="java.lang.String"/>
+	<field name="advcode" class="java.lang.String"/>
+	<field name="advname" class="java.lang.String"/>
+	<field name="MTD Consid" class="java.math.BigDecimal"/>
+	<field name="MTD Brok" class="java.math.BigDecimal"/>
+	<field name="MTD Count" class="java.lang.Integer"/>
+	<field name="MTD Brok per Contract" class="java.math.BigDecimal"/>
+	<field name="MTD Brok Rate" class="java.math.BigDecimal"/>
+	<field name="Daily Consid" class="java.math.BigDecimal"/>
+	<field name="Daily Brok" class="java.math.BigDecimal"/>
+	<field name="Daily Count" class="java.lang.Integer"/>
+	<field name="Daily Brok per Contract" class="java.math.BigDecimal"/>
+	<field name="Daily Brok Rate" class="java.math.BigDecimal"/>
+	<variable name="DailyTurnover_B" class="java.lang.Double" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Consid}]]></variableExpression>
+	</variable>
+	<variable name="DailyBrokerage_B" class="java.lang.Double" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Brok}]]></variableExpression>
+	</variable>
+	<variable name="DailyContractCount_B" class="java.lang.Long" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Count}]]></variableExpression>
+	</variable>
+	<variable name="DailyBrokperContract_B" class="java.lang.Long" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Brok per Contract}]]></variableExpression>
+	</variable>
+	<variable name="DailyBrokRate_B" class="java.math.BigDecimal" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Brok Rate}]]></variableExpression>
+	</variable>
+	<variable name="MTDTurnover_B" class="java.lang.Double" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Consid}]]></variableExpression>
+	</variable>
+	<variable name="MTDBrok_B" class="java.lang.Double" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Brok}]]></variableExpression>
+	</variable>
+	<variable name="MTDContractCount_B" class="java.lang.Long" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Count}]]></variableExpression>
+	</variable>
+	<variable name="MTDBrokperContract_B" class="java.lang.Long" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Brok per Contract}]]></variableExpression>
+	</variable>
+	<variable name="MTDBrokerageRate_B" class="java.math.BigDecimal" resetType="Group" resetGroup="BRANCH" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Brok Rate}]]></variableExpression>
+	</variable>
+	<variable name="DailyTurnover_O" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Consid}]]></variableExpression>
+	</variable>
+	<variable name="DailyBrokerage_O" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Brok}]]></variableExpression>
+	</variable>
+	<variable name="DailyContractCount_O" class="java.lang.Long" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Count}]]></variableExpression>
+	</variable>
+	<variable name="DailyBrokperContract_O" class="java.lang.Long" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Brok per Contract}]]></variableExpression>
+	</variable>
+	<variable name="DailyBrokRate_O" class="java.math.BigDecimal" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Brok Rate}]]></variableExpression>
+	</variable>
+	<variable name="MTDTurnover_O" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Consid}]]></variableExpression>
+	</variable>
+	<variable name="MTDBrok_O" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Brok}]]></variableExpression>
+	</variable>
+	<variable name="MTDContractCount_O" class="java.lang.Long" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Count}]]></variableExpression>
+	</variable>
+	<variable name="MTDBrokperContract_O" class="java.lang.Long" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Brok per Contract}]]></variableExpression>
+	</variable>
+	<variable name="MTDBrokerageRate_O" class="java.math.BigDecimal" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Brok Rate}]]></variableExpression>
+	</variable>
+	<variable name="DailyTurnover_G" class="java.lang.Double" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Consid}]]></variableExpression>
+	</variable>
+	<variable name="DailyBrokerage_G" class="java.lang.Double" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Brok}]]></variableExpression>
+	</variable>
+	<variable name="DailyContractCount_G" class="java.lang.Long" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Count}]]></variableExpression>
+	</variable>
+	<variable name="DailyBrokperContract_G" class="java.lang.Long" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Brok per Contract}]]></variableExpression>
+	</variable>
+	<variable name="DailyBrokRate_G" class="java.math.BigDecimal" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{Daily Brok Rate}]]></variableExpression>
+	</variable>
+	<variable name="MTDTurnover_G" class="java.lang.Double" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Consid}]]></variableExpression>
+	</variable>
+	<variable name="MTDBrok_G" class="java.lang.Double" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Brok}]]></variableExpression>
+	</variable>
+	<variable name="MTDContractCount_G" class="java.lang.Long" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Count}]]></variableExpression>
+	</variable>
+	<variable name="MTDBrokperContract_G" class="java.lang.Long" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Brok per Contract}]]></variableExpression>
+	</variable>
+	<variable name="MTDBrokerageRate_G" class="java.math.BigDecimal" resetType="Group" resetGroup="null" calculation="Sum">
+		<variableExpression><![CDATA[$F{MTD Brok Rate}]]></variableExpression>
+	</variable>
+	<variable name="AdviserLineCount" class="java.lang.Integer" resetType="Group" resetGroup="BRANCH" calculation="Count">
+		<variableExpression><![CDATA[$F{advcode}]]></variableExpression>
+	</variable>
+	<variable name="BranchLineCount" class="java.lang.Integer" resetType="Group" resetGroup="orgcode" calculation="Count">
+		<variableExpression><![CDATA[$F{advcode}]]></variableExpression>
+	</variable>
+	<variable name="TotalLineCount" class="java.lang.Integer" resetType="Group" resetGroup="null" calculation="Count">
+		<variableExpression><![CDATA[$F{advcode}]]></variableExpression>
+	</variable>
+	<group name="null">
+		<groupExpression><![CDATA[null]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="orgcode">
+		<groupExpression><![CDATA[$F{orgcode}]]></groupExpression>
+		<groupHeader>
+			<band height="25">
+				<textField>
+					<reportElement mode="Opaque" x="0" y="5" width="365" height="20" isPrintWhenDetailOverflows="true" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[" Organisation: " + $F{orgcode}.toUpperCase() +  " - " + $F{orgname}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="16" splitType="Prevent">
+				<textField>
+					<reportElement mode="Opaque" x="0" y="0" width="154" height="16" isPrintWhenDetailOverflows="true" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[" Totals for Organisation: " + $F{orgcode}.toUpperCase()]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00 %">
+					<reportElement mode="Opaque" x="427" y="0" width="42" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0.00").format(($V{DailyTurnover_O}==0?0:($V{DailyBrokerage_O}/$V{DailyTurnover_O})*100)) + "%"]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0">
+					<reportElement mode="Opaque" x="311" y="0" width="58" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{DailyContractCount_O}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0">
+					<reportElement mode="Opaque" x="637" y="0" width="58" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{MTDContractCount_O}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement mode="Opaque" x="236" y="0" width="75" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{DailyBrokerage_O}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement mode="Opaque" x="695" y="0" width="66" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA["\$" + new java.text.DecimalFormat("#,##0.00").format(($V{MTDContractCount_O}==0?0:$V{MTDBrok_O}/$V{MTDContractCount_O}))]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00 %">
+					<reportElement mode="Opaque" x="761" y="0" width="42" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0.00").format(($V{MTDTurnover_O}==0?0:($V{MTDBrok_O}/$V{MTDTurnover_O})*100)) + "%"]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement mode="Opaque" x="369" y="0" width="58" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA["\$" + new java.text.DecimalFormat("#,##0.00").format(($V{DailyContractCount_O}==0?0:$V{DailyBrokerage_O}/$V{DailyContractCount_O}))]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement mode="Opaque" x="469" y="0" width="91" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{MTDTurnover_O}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement mode="Opaque" x="560" y="0" width="77" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{MTDBrok_O}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement mode="Opaque" x="154" y="0" width="82" height="16" forecolor="#FFFFFF" backcolor="#1B3669"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{DailyTurnover_O}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="BRANCH">
+		<groupExpression><![CDATA[$F{brhcode}]]></groupExpression>
+		<groupHeader>
+			<band height="21">
+				<printWhenExpression><![CDATA[$P{DETAIL}==0]]></printWhenExpression>
+				<textField>
+					<reportElement mode="Opaque" x="7" y="5" width="327" height="16" backcolor="#91B4E4"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["  Branch: " +  $F{brhname} + " (" + $F{brhcode} + ")"]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="0" y="0" width="5" height="21" backcolor="#1B3669"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="21" splitType="Prevent">
+				<printWhenExpression><![CDATA[true]]></printWhenExpression>
+				<textField isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="0" width="5" height="21" backcolor="#1B3669"/>
+					<textElement>
+						<font size="9"/>
+					</textElement>
+				</textField>
+				<textField>
+					<reportElement style="BlueBackground" mode="Opaque" x="7" y="0" width="147" height="16"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($P{DETAIL}==0?("  Totals for Branch " +  $F{brhname} + " (" + $F{brhcode} + "):") : ($F{brhname} + " (" + $F{brhcode} + "):"))]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement style="BlueBackground" mode="Opaque" x="154" y="0" width="82" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{DailyTurnover_B}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement style="BlueBackground" mode="Opaque" x="236" y="0" width="75" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{DailyBrokerage_B}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0">
+					<reportElement style="BlueBackground" mode="Opaque" x="311" y="0" width="58" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{DailyContractCount_B}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement style="BlueBackground" mode="Opaque" x="369" y="0" width="58" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA["\$" + new java.text.DecimalFormat("#,##0.00").format(($V{DailyContractCount_B}==0?0:$V{DailyBrokerage_B}/$V{DailyContractCount_B}))]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00 %">
+					<reportElement style="BlueBackground" mode="Opaque" x="427" y="0" width="42" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0.00").format(($V{DailyTurnover_B}==0?0:($V{DailyBrokerage_B}/$V{DailyTurnover_B})*100)) + "%"]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement style="BlueBackground" mode="Opaque" x="469" y="0" width="91" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{MTDTurnover_B}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement style="BlueBackground" mode="Opaque" x="560" y="0" width="77" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{MTDBrok_B}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0">
+					<reportElement style="BlueBackground" mode="Opaque" x="637" y="0" width="58" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{MTDContractCount_B}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement style="BlueBackground" mode="Opaque" x="695" y="0" width="66" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA["\$" + new java.text.DecimalFormat("#,##0.00").format(($V{MTDContractCount_B}==0?0:$V{MTDBrok_B}/$V{MTDContractCount_B}))]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement style="BlueBackground" mode="Opaque" x="761" y="0" width="42" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0.00").format(($V{MTDTurnover_B}==0?0:($V{MTDBrok_B}/$V{MTDTurnover_B})*100)) + "%"]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band height="77" splitType="Stretch">
+			<line>
+				<reportElement x="166" y="29" width="471" height="1" forecolor="#333333"/>
+			</line>
+			<textField pattern="MMMMM dd, yyyy">
+				<reportElement x="703" y="0" width="100" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Top"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<image onErrorType="Blank">
+				<reportElement x="0" y="2" width="133" height="28"/>
+				<imageExpression><![CDATA["repo:logo"]]></imageExpression>
+			</image>
+		</band>
+	</background>
+	<title>
+		<band height="169" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="68" width="803" height="16"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["for " + new java.text.SimpleDateFormat("dd/MM/yyyy").format($P{thedate})]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement x="74" y="116" width="729" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[($P{BRANCH_CODE}.get(0).equals('-1') ? "All Branches" : ( $P{BRANCH_CODE}.size() > 1 ? "Some Branches" : $F{brhcode} + " - " + $F{brhname}))]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="116" width="74" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Branch:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="42" width="802" height="26" forecolor="#000000"/>
+				<textElement textAlignment="Center" markup="none">
+					<font fontName="SansSerif" size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Month To Date Trading Statistics"]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement x="74" y="100" width="729" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[($P{ORG_CODE}.get(0).equals("ALL") ?"All Organisations":($P{ORG_CODE}.size() > 1 ? "Some Organisations": $F{orgcode} + " - " + $F{orgname}))]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="132" width="74" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Adviser:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement x="74" y="132" width="729" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[($P{ADV_CODE}.get(0).equals('-1') ? "All Advisers" : ( $P{ADV_CODE}.size() > 1 ? "Some Advisers" : $F{advcode} + " - " + $F{advname}))]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="100" width="74" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Organisation:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="148" width="74" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Security:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement x="74" y="148" width="729" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{START_SEC}==""?"All Securities":$F{seccode}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="67" splitType="Stretch">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER}!=1]]></printWhenExpression>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="52" splitType="Stretch">
+			<printWhenExpression><![CDATA[true]]></printWhenExpression>
+			<line>
+				<reportElement x="0" y="1" width="803" height="1" forecolor="#103995"/>
+				<graphicElement>
+					<pen lineWidth="3.0"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="50" width="803" height="1" forecolor="#103995"/>
+				<graphicElement>
+					<pen lineWidth="3.0"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="12" y="5" width="33" height="40">
+					<printWhenExpression><![CDATA[$P{DETAIL}==0]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Adv
+Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="45" y="5" width="109" height="40">
+					<printWhenExpression><![CDATA[$P{DETAIL}==0]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Adv
+Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="154" y="5" width="82" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[Daily Turnover]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="236" y="5" width="75" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[Daily Brk]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="311" y="5" width="58" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[Daily Contract Count]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="369" y="5" width="58" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[Daily
+Brk per Contract]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="427" y="5" width="42" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[Daily
+Brk
+Rate]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="469" y="5" width="91" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[MTD Turnover]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="560" y="5" width="77" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[MTD Brk]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="637" y="5" width="59" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[MTD Contract Count]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="696" y="5" width="65" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[MTD
+Brk per Contract]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="763" y="5" width="40" height="40"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" rotation="None">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[MTD
+Brk
+Rate]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{DETAIL} == 0]]></printWhenExpression>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" mode="Opaque" x="7" y="0" width="5" height="16" backcolor="#91B4E4"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="0" width="5" height="16" backcolor="#1B3669"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Transparent" x="236" y="0" width="75" height="16" backcolor="#FF00CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Daily Brok}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement mode="Transparent" x="637" y="0" width="58" height="16" backcolor="#0033FF"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{MTD Count}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Transparent" x="560" y="0" width="77" height="16" backcolor="#00FFCC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{MTD Brok}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Transparent" x="12" y="0" width="33" height="16" backcolor="#00FFFF"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{advcode} + " "]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement mode="Transparent" x="311" y="0" width="58" height="16" backcolor="#FF0033"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Daily Count}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Transparent" x="154" y="0" width="82" height="16" backcolor="#9900FF"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Daily Consid}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Transparent" x="369" y="0" width="58" height="16" backcolor="#FF9900"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA["\$" + new java.text.DecimalFormat("#,##0.00").format($F{Daily Brok per Contract})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="45" y="0" width="109" height="16" isPrintWhenDetailOverflows="true" backcolor="#0033FF"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{advname}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Transparent" x="427" y="0" width="42" height="16" backcolor="#FFFF00"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0.00").format(($F{Daily Consid}==0?0:($F{Daily Brok}/$F{Daily Consid})*100)) + "%"]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Transparent" x="469" y="0" width="91" height="16" backcolor="#99FF00"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{MTD Consid}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Transparent" x="695" y="0" width="66" height="16" backcolor="#9900FF"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA["\$" + new java.text.DecimalFormat("#,##0.00").format($F{MTD Brok per Contract})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Transparent" x="761" y="0" width="42" height="16" backcolor="#FF00CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0.00").format(($F{MTD Consid}==-0?0:($F{MTD Brok}/$F{MTD Consid})*100)) + "%"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="24" splitType="Stretch">
+			<textField>
+				<reportElement x="666" y="4" width="97" height="20"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="1" width="803" height="1"/>
+			</line>
+			<textField evaluationTime="Report">
+				<reportElement x="763" y="4" width="40" height="20"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="40" splitType="Prevent">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="6" width="154" height="16" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" Grand Totals"]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Opaque" x="369" y="6" width="58" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA["\$" + new java.text.DecimalFormat("#,##0.00").format(($V{DailyContractCount_G}==0?0:$V{DailyBrokerage_G}/$V{DailyContractCount_G}))]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement mode="Opaque" x="311" y="6" width="58" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{DailyContractCount_G}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Opaque" x="236" y="6" width="75" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{DailyBrokerage_G}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement mode="Opaque" x="637" y="6" width="58" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{MTDContractCount_G}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Opaque" x="469" y="6" width="91" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{MTDTurnover_G}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement mode="Opaque" x="427" y="6" width="42" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0.00").format(($V{DailyTurnover_G}==0?0:($V{DailyBrokerage_G}/$V{DailyTurnover_G})*100)) + "%"]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Opaque" x="560" y="6" width="77" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{MTDBrok_G}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Opaque" x="695" y="6" width="66" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA["\$" + new java.text.DecimalFormat("#,##0.00").format(($V{MTDContractCount_G}==0?0:$V{MTDBrok_G}/$V{MTDContractCount_G}))]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement mode="Opaque" x="154" y="6" width="82" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{DailyTurnover_G}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement mode="Opaque" x="761" y="6" width="42" height="16" forecolor="#000000" backcolor="#DEDDDD"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0.00").format(($V{MTDTurnover_G}==0?0:($V{MTDBrok_G}/$V{MTDTurnover_G})*100)) + "%"]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+	<noData>
+		<band height="314">
+			<textField>
+				<reportElement x="211" y="166" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Banch:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="211" y="150" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Organisation:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="211" y="230" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Security:"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="211" y="58" width="380" height="38" forecolor="#000000"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="20" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Month To Date Trading Statistics]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="211" y="108" width="380" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["There are no records that match your search criteria."]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="291" y="166" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{BRANCH_CODE}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="211" y="134" width="380" height="16" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Search Criteria"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="291" y="230" width="300" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{START_SEC}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="291" y="150" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{ORG_CODE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="211" y="182" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Adviser:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="291" y="182" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{ADV_CODE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="291" y="246" width="300" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{thedate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="211" y="246" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="291" y="198" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{MARKET}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="211" y="198" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Market:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="211" y="214" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Currency:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="291" y="214" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{CURRENCY}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="211" y="262" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Detail for:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="291" y="262" width="300" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{DETAIL}.equals(0)?"Adviser":"Branch"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="291" y="278" width="300" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{DETAIL} == 0 ? ($P{ORDER_BY}.equals("a.advcode") ? "Adviser Code" : ($P{ORDER_BY}.equals("a.advname") ? "Adviser Name" : $P{ORDER_BY})) : ($P{ORDER_BY}.equals("b.brhcode") ? "Branch Code" : ($P{ORDER_BY}.equals("b.brhname") ? "Branch Name" : ($P{ORDER_BY})))]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="211" y="278" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Order By:"]]></textFieldExpression>
+			</textField>
+		</band>
+	</noData>
+</jasperReport>

@@ -1,0 +1,1435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="BrokEarnedbyAdv" language="groovy" pageWidth="595" pageHeight="843" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true" isFloatColumnFooter="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.jasperserver.reportUnit" value="/reports/adviser/shares/reports/Brok_Earned_By_Adv"/>
+	<property name="ireport.jasperserver.url" value="http://tethys.gbst.net:8980/services/repository"/>
+	<style name="BlueBackground" mode="Opaque">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{ROW_NUM}%2==0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#DFE9F6" isBold="false"/>
+		</conditionalStyle>
+	</style>
+	<style name="RedIfNeg1" style="BlueBackground" mode="Opaque" fill="Solid">
+		<conditionalStyle>
+			<style mode="Opaque" forecolor="#9E2323"/>
+		</conditionalStyle>
+	</style>
+	<style name="ReIfNeg2" style="BlueBackground" mode="Opaque" fill="Solid">
+		<conditionalStyle>
+			<style mode="Opaque" forecolor="#9E2323"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="MARKET" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["ASX"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CURRENCY" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["AUD"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ORG_CODE" class="java.util.Collection" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new java.util.ArrayList()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="YEAR" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new java.lang.Integer(new java.text.SimpleDateFormat("yyyy").format(new java.util.Date()))]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ADV_CODE" class="java.util.Collection">
+		<defaultValueExpression><![CDATA[new java.util.ArrayList()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LoggedInUserFrontOfficeId" class="java.lang.Long" isForPrompting="false"/>
+	<parameter name="AccessibleSharesAdvisorCodes" class="java.util.Collection" isForPrompting="false"/>
+	<parameter name="AccessibleSharesAdvisorIds" class="java.util.Collection" isForPrompting="false"/>
+	<parameter name="AccessibleSharesBranchIds" class="java.util.Collection" isForPrompting="false"/>
+	<parameter name="AccessibleOrganisationCodes" class="java.util.Collection" isForPrompting="false"/>
+	<parameter name="EXEC_DATE" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new java.util.Date()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BRANCH_ID" class="java.util.Collection">
+		<defaultValueExpression><![CDATA[new java.util.ArrayList()]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select a.orgcode, a.advcode, a.advname, ab.advyear, b.brhcode, b.brhname, b.branchid,
+(string_to_array(ab.brokearn,';'))[1] as "Jan Brok",(string_to_array(ab.brokord,';'))[1] as "Jan Order",
+(string_to_array(ab.brokearn,';'))[2] as "Feb Brok",(string_to_array(ab.brokord,';'))[2] as "Feb Order",
+(string_to_array(ab.brokearn,';'))[3] as "Mar Brok",(string_to_array(ab.brokord,';'))[3] as "Mar Order",
+(string_to_array(ab.brokearn,';'))[4] as "Apr Brok",(string_to_array(ab.brokord,';'))[4] as "Apr Order",
+(string_to_array(ab.brokearn,';'))[5] as "May Brok",(string_to_array(ab.brokord,';'))[5] as "May Order",
+(string_to_array(ab.brokearn,';'))[6] as "Jun Brok",(string_to_array(ab.brokord,';'))[6] as "Jun Order",
+(string_to_array(ab.brokearn,';'))[7] as "Jul Brok",(string_to_array(ab.brokord,';'))[7] as "Jul Order",
+(string_to_array(ab.brokearn,';'))[8] as "Aug Brok",(string_to_array(ab.brokord,';'))[8] as "Aug Order",
+(string_to_array(ab.brokearn,';'))[9] as "Sep Brok",(string_to_array(ab.brokord,';'))[9] as "Sep Order",
+(string_to_array(ab.brokearn,';'))[10] as "Oct Brok",(string_to_array(ab.brokord,';'))[10] as "Oct Order",
+(string_to_array(ab.brokearn,';'))[11] as "Nov Brok",(string_to_array(ab.brokord,';'))[11] as "Nov Order",
+(string_to_array(ab.brokearn,';'))[12] as "Dec Brok",(string_to_array(ab.brokord,';'))[12] as "Dec Order",
+
+(((string_to_array(ab.brokearn,';'))[12]::numeric) + ((string_to_array(ab.brokearn,';'))[11]::numeric) + ((string_to_array(ab.brokearn,';'))[10]::numeric) +
+((string_to_array(ab.brokearn,';'))[9]::numeric) + ((string_to_array(ab.brokearn,';'))[8]::numeric) + ((string_to_array(ab.brokearn,';'))[7]::numeric) +
+((string_to_array(ab.brokearn,';'))[6]::numeric) + ((string_to_array(ab.brokearn,';'))[5]::numeric) + ((string_to_array(ab.brokearn,';'))[4]::numeric) +
+((string_to_array(ab.brokearn,';'))[3]::numeric) + ((string_to_array(ab.brokearn,';'))[2]::numeric) + ((string_to_array(ab.brokearn,';'))[1]::numeric)) as "Year Brok",
+
+(((string_to_array(ab.brokord,';'))[12]::numeric) + ((string_to_array(ab.brokord,';'))[11]::numeric) + ((string_to_array(ab.brokord,';'))[10]::numeric) +
+((string_to_array(ab.brokord,';'))[9]::numeric) + ((string_to_array(ab.brokord,';'))[8]::numeric) + ((string_to_array(ab.brokord,';'))[7]::numeric) +
+((string_to_array(ab.brokord,';'))[6]::numeric) + ((string_to_array(ab.brokord,';'))[5]::numeric) + ((string_to_array(ab.brokord,';'))[4]::numeric) +
+((string_to_array(ab.brokord,';'))[3]::numeric) + ((string_to_array(ab.brokord,';'))[2]::numeric) + ((string_to_array(ab.brokord,';'))[1]::numeric)) as "Year Ord"
+
+from advisor a
+
+join advbrok ab on ab.advisorid = a.advisorid
+join branch b on a.branchid = b.branchid
+
+where ab."market-id" = $P{MARKET}
+  and ab.cncycode  = $P{CURRENCY}
+  and ab.advyear  >= ($P{YEAR} + (date_part('year',current_date) - date_part('year',cast($P{EXEC_DATE} as date))))
+  and ($X{IN, CAST(b.branchid AS VARCHAR), BRANCH_ID} OR $X{IN, '-1', BRANCH_ID}) AND $X{IN, b.branchid, AccessibleSharesBranchIds}
+  and ($X{IN, CAST(a.advisorid AS VARCHAR), ADV_CODE} OR $X{IN, '-1', ADV_CODE}) AND $X{IN,a.advisorid, AccessibleSharesAdvisorIds}
+  and ($X{IN,a.orgcode, ORG_CODE} OR $X{IN,'ALL',ORG_CODE}) AND $X{IN,a.orgcode,AccessibleOrganisationCodes}
+
+ order by a.orgcode, b.branchid, a.advcode, ab.advyear
+]]>
+	</queryString>
+	<field name="orgcode" class="java.lang.String"/>
+	<field name="advcode" class="java.lang.String"/>
+	<field name="advname" class="java.lang.String"/>
+	<field name="advyear" class="java.lang.Integer"/>
+	<field name="brhcode" class="java.lang.String"/>
+	<field name="brhname" class="java.lang.String"/>
+	<field name="Jan Brok" class="java.lang.String"/>
+	<field name="Jan Order" class="java.lang.String"/>
+	<field name="Feb Brok" class="java.lang.String"/>
+	<field name="Feb Order" class="java.lang.String"/>
+	<field name="Mar Brok" class="java.lang.String"/>
+	<field name="Mar Order" class="java.lang.String"/>
+	<field name="Apr Brok" class="java.lang.String"/>
+	<field name="Apr Order" class="java.lang.String"/>
+	<field name="May Brok" class="java.lang.String"/>
+	<field name="May Order" class="java.lang.String"/>
+	<field name="Jun Brok" class="java.lang.String"/>
+	<field name="Jun Order" class="java.lang.String"/>
+	<field name="Jul Brok" class="java.lang.String"/>
+	<field name="Jul Order" class="java.lang.String"/>
+	<field name="Aug Brok" class="java.lang.String"/>
+	<field name="Aug Order" class="java.lang.String"/>
+	<field name="Sep Brok" class="java.lang.String"/>
+	<field name="Sep Order" class="java.lang.String"/>
+	<field name="Oct Brok" class="java.lang.String"/>
+	<field name="Oct Order" class="java.lang.String"/>
+	<field name="Nov Brok" class="java.lang.String"/>
+	<field name="Nov Order" class="java.lang.String"/>
+	<field name="Dec Brok" class="java.lang.String"/>
+	<field name="Dec Order" class="java.lang.String"/>
+	<field name="Year Brok" class="java.lang.Double"/>
+	<field name="Year Ord" class="java.lang.Double"/>
+	<variable name="ROW_NUM" class="java.lang.Integer">
+		<variableExpression><![CDATA[$V{ROW_NUM} + 1]]></variableExpression>
+		<initialValueExpression><![CDATA[new java.lang.Integer(0)]]></initialValueExpression>
+	</variable>
+	<variable name="Jan Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jan Brok})]]></variableExpression>
+	</variable>
+	<variable name="Jan Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jan Order})]]></variableExpression>
+	</variable>
+	<variable name="Feb Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Feb Brok})]]></variableExpression>
+	</variable>
+	<variable name="Feb Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Feb Order})]]></variableExpression>
+	</variable>
+	<variable name="Mar Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Mar Brok})]]></variableExpression>
+	</variable>
+	<variable name="Mar Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Mar Order})]]></variableExpression>
+	</variable>
+	<variable name="Apr Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Apr Brok})]]></variableExpression>
+	</variable>
+	<variable name="Apr Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Apr Order})]]></variableExpression>
+	</variable>
+	<variable name="May Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{May Brok})]]></variableExpression>
+	</variable>
+	<variable name="May Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{May Order})]]></variableExpression>
+	</variable>
+	<variable name="Jun Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jun Brok})]]></variableExpression>
+	</variable>
+	<variable name="Jun Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jun Order})]]></variableExpression>
+	</variable>
+	<variable name="Jul Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jul Brok})]]></variableExpression>
+	</variable>
+	<variable name="Jul Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jul Order})]]></variableExpression>
+	</variable>
+	<variable name="Aug Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Aug Brok})]]></variableExpression>
+	</variable>
+	<variable name="Aug Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Aug Order})]]></variableExpression>
+	</variable>
+	<variable name="Sep Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Sep Brok})]]></variableExpression>
+	</variable>
+	<variable name="Sep Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Sep Order})]]></variableExpression>
+	</variable>
+	<variable name="Oct Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Oct Brok})]]></variableExpression>
+	</variable>
+	<variable name="Oct Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Oct Order})]]></variableExpression>
+	</variable>
+	<variable name="Nov Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Nov Brok})]]></variableExpression>
+	</variable>
+	<variable name="Nov Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Nov Order})]]></variableExpression>
+	</variable>
+	<variable name="Dec Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Dec Brok})]]></variableExpression>
+	</variable>
+	<variable name="Dec Order_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Dec Order})]]></variableExpression>
+	</variable>
+	<variable name="Year Ord_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Year Ord})]]></variableExpression>
+	</variable>
+	<variable name="Jan Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jan Brok})]]></variableExpression>
+	</variable>
+	<variable name="Jan Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jan Order})]]></variableExpression>
+	</variable>
+	<variable name="Feb Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Feb Brok})]]></variableExpression>
+	</variable>
+	<variable name="Feb Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Feb Order})]]></variableExpression>
+	</variable>
+	<variable name="Mar Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Mar Brok})]]></variableExpression>
+	</variable>
+	<variable name="Mar Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Mar Order})]]></variableExpression>
+	</variable>
+	<variable name="Apr Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Apr Brok})]]></variableExpression>
+	</variable>
+	<variable name="Apr Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Apr Order})]]></variableExpression>
+	</variable>
+	<variable name="May Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{May Brok})]]></variableExpression>
+	</variable>
+	<variable name="May Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{May Order})]]></variableExpression>
+	</variable>
+	<variable name="Jun Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jun Brok})]]></variableExpression>
+	</variable>
+	<variable name="Jun Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jun Order})]]></variableExpression>
+	</variable>
+	<variable name="Jul Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jul Brok})]]></variableExpression>
+	</variable>
+	<variable name="Jul Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Jul Order})]]></variableExpression>
+	</variable>
+	<variable name="Aug Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Aug Brok})]]></variableExpression>
+	</variable>
+	<variable name="Aug Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Aug Order})]]></variableExpression>
+	</variable>
+	<variable name="Sep Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Sep Brok})]]></variableExpression>
+	</variable>
+	<variable name="Sep Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Sep Order})]]></variableExpression>
+	</variable>
+	<variable name="Oct Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Oct Brok})]]></variableExpression>
+	</variable>
+	<variable name="Oct Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Oct Order})]]></variableExpression>
+	</variable>
+	<variable name="Nov Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Nov Brok})]]></variableExpression>
+	</variable>
+	<variable name="Nov Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Nov Order})]]></variableExpression>
+	</variable>
+	<variable name="Dec Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Dec Brok})]]></variableExpression>
+	</variable>
+	<variable name="Dec Order_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[new java.math.BigDecimal($F{Dec Order})]]></variableExpression>
+	</variable>
+	<variable name="Year Brok_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{Year Brok}]]></variableExpression>
+	</variable>
+	<variable name="Year Ord_1_1" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{Year Ord}]]></variableExpression>
+	</variable>
+	<variable name="Year Brok_1" class="java.lang.Double" resetType="Group" resetGroup="orgcode" calculation="Sum">
+		<variableExpression><![CDATA[$F{Year Brok}]]></variableExpression>
+	</variable>
+	<group name="null">
+		<groupExpression><![CDATA[null]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band height="290">
+				<printWhenExpression><![CDATA[$P{ADV_CODE}.size() == 1 && !($P{ADV_CODE}.get(0).equals('-1'))]]></printWhenExpression>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="227" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Nov Order_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="195" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Sep Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="115" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Apr Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="131" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{May Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="103" y="131" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[May:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="67" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jan Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="267" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Year Ord_1_1}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="103" y="211" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[October:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="179" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Aug Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="163" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jul Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="211" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Oct Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="211" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Oct Order_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="131" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{May Order_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="179" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Aug Order_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="83" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Feb Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="67" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jan Order_1_1}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="103" y="243" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[December:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="99" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Mar Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="0" y="5" width="555" height="16"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Total Brokerage for all available Organisations and Advisers Beginning " + ($P{YEAR} + new java.lang.Integer(new java.text.SimpleDateFormat("yyyy").format(new java.util.Date())) - new java.lang.Integer(new java.text.SimpleDateFormat("yyyy").format($P{EXEC_DATE})))]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="267" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Year Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="99" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Mar Order_1_1}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="103" y="147" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[June:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="103" y="267" width="60" height="16"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Year Total:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="103" y="179" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[August:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="163" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jul Order_1_1}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="168" y="35" width="100" height="32"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Brokerage Earned from Accounts]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="103" y="67" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[January:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="195" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Sep Order_1_1}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="184" y="263" width="90" height="1"/>
+					<graphicElement>
+						<pen lineWidth="1.0" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement x="103" y="163" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[July:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="243" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Dec Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="103" y="115" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[April:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="83" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Feb Order_1_1}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="103" y="99" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[March:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="295" y="35" width="100" height="32"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Brokerage Earned from Orders]]></text>
+				</staticText>
+				<line>
+					<reportElement x="311" y="263" width="90" height="1"/>
+					<graphicElement>
+						<pen lineWidth="1.0" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement x="103" y="227" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[November:]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="23" width="555" height="1" forecolor="#103995"/>
+					<graphicElement>
+						<pen lineWidth="3.0"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement x="103" y="83" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[February:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="147" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jun Order_1_1}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="103" y="195" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[September:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="243" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Dec Order_1_1}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="1" width="555" height="1" forecolor="#103995"/>
+					<graphicElement>
+						<pen lineWidth="3.0"/>
+					</graphicElement>
+				</line>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="295" y="115" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Apr Order_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="147" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jun Brok_1_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="168" y="227" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Nov Brok_1_1}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="orgcode">
+		<groupExpression><![CDATA[$F{orgcode}]]></groupExpression>
+		<groupFooter>
+			<band height="331">
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="162" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[July:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="178" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[August:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="146" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[June:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="82" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[February:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="242" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[December:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="266" width="60" height="16"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Year Total:]]></text>
+				</staticText>
+				<line>
+					<reportElement positionType="FixRelativeToBottom" x="311" y="286" width="90" height="1"/>
+					<graphicElement>
+						<pen lineWidth="2.0" lineStyle="Double"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="226" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[November:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="114" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[April:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="66" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[January:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="130" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[May:]]></text>
+				</staticText>
+				<line>
+					<reportElement positionType="FixRelativeToBottom" x="311" y="262" width="90" height="1"/>
+					<graphicElement>
+						<pen lineWidth="1.0" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="210" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[October:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="98" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[March:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="103" y="194" width="60" height="16"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[September:]]></text>
+				</staticText>
+				<line>
+					<reportElement positionType="FixRelativeToBottom" x="184" y="262" width="90" height="1"/>
+					<graphicElement>
+						<pen lineWidth="1.0" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement positionType="FixRelativeToBottom" x="184" y="287" width="90" height="1"/>
+					<graphicElement>
+						<pen lineWidth="2.0" lineStyle="Double"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="295" y="34" width="100" height="32"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Brokerage Earned from Orders]]></text>
+				</staticText>
+				<staticText>
+					<reportElement positionType="FixRelativeToBottom" x="168" y="34" width="100" height="32"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Brokerage Earned from Accounts]]></text>
+				</staticText>
+				<line>
+					<reportElement positionType="FixRelativeToBottom" x="0" y="22" width="555" height="1" forecolor="#103995"/>
+					<graphicElement>
+						<pen lineWidth="3.0"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement x="0" y="0" width="555" height="1" forecolor="#103995"/>
+					<graphicElement>
+						<pen lineWidth="3.0"/>
+					</graphicElement>
+				</line>
+				<textField isStretchWithOverflow="true">
+					<reportElement x="0" y="4" width="555" height="16"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Total Brokerage for " +
+($P{ADV_CODE}.contains("-1")?$F{orgcode} + " with ALL Advisers":$P{ADV_CODE}.size()>1?$F{orgcode} + " with SOME Advisers":($F{advname} + " (" + $F{advcode}.toUpperCase() + ")"))+ " Beginning " + $P{YEAR}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="66" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jan Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="66" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jan Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="82" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Feb Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="82" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Feb Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="98" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Mar Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="98" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Mar Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="114" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Apr Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="114" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Apr Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="130" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{May Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="130" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{May Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="146" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jun Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="146" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jun Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="162" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jul Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="162" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Jul Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="178" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Aug Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="178" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Aug Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="194" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Sep Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="194" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Sep Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="210" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Oct Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="210" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Oct Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="226" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Nov Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="226" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Nov Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="242" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Dec Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="242" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Dec Order_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="168" y="266" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Year Brok_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement positionType="FixRelativeToBottom" x="295" y="266" width="100" height="16"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Year Ord_1}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="advcode" keepTogether="true">
+		<groupExpression><![CDATA[$F{advcode}]]></groupExpression>
+	</group>
+	<group name="advyear">
+		<groupExpression><![CDATA[$F{advyear}]]></groupExpression>
+	</group>
+	<background>
+		<band height="38" splitType="Stretch">
+			<image onErrorType="Blank">
+				<reportElement x="0" y="0" width="133" height="28"/>
+				<imageExpression><![CDATA["repo:logo"]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="131" y="29" width="292" height="1" forecolor="#333333"/>
+			</line>
+			<textField pattern="MMMMM dd, yyyy">
+				<reportElement x="455" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("MMMM dd, yyyy").format(new java.util.Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</background>
+	<title>
+		<band height="134" splitType="Stretch">
+			<staticText>
+				<reportElement x="108" y="42" width="338" height="26" forecolor="#000000"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="20" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Brokerage Earned By Adviser]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="50" y="89" width="100" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date())]]></textFieldExpression>
+			</textField>
+			<textField pattern="h.mm a">
+				<reportElement x="50" y="105" width="100" height="16"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("h.mm a").format(new java.util.Date())]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="89" width="50" height="16"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="105" width="50" height="16"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Time:]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="50">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER} != 1]]></printWhenExpression>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="306" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="555" height="1" forecolor="#103995"/>
+				<graphicElement>
+					<pen lineWidth="3.0"/>
+				</graphicElement>
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement x="45" y="4" width="25" height="16"/>
+				<textElement>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{advcode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="86" y="4" width="215" height="16"/>
+				<textElement>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{advname}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="22" width="555" height="1" forecolor="#103995"/>
+				<graphicElement>
+					<pen lineWidth="3.0"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="295" y="34" width="100" height="32"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Brokerage Earned from Orders]]></text>
+			</staticText>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="184" y="262" width="90" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="184" y="286" width="90" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Double"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="311" y="286" width="90" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Double"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="311" y="262" width="90" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="266" width="60" height="16"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Year Total:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="66" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[January:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="146" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[June:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="130" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[May:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="114" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[April:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="82" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[February:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="98" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[March:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="162" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[July:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="178" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[August:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="194" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[September:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="210" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[October:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="226" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[November:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="103" y="242" width="60" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[December:]]></text>
+			</staticText>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="98" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Mar Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="146" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Jun Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="178" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Aug Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="66" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Jan Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="114" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Apr Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="130" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{May Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="66" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Jan Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="226" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Nov Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="226" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Nov Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="162" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Jul Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="242" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Dec Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="130" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{May Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="82" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Feb Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="194" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Sep Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="178" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Aug Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="210" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Oct Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="162" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Jul Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="194" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Sep Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="114" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Apr Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="242" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Dec Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="210" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Oct Brok})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="146" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Jun Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="98" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Mar Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="82" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.math.BigDecimal($F{Feb Order})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="168" y="266" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Year Brok}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="295" y="266" width="100" height="16"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Year Ord}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="168" y="34" width="100" height="32"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Brokerage Earned from Accounts]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="4" width="45" height="16"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Adviser:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="469" y="4" width="30" height="16"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Year:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="499" y="4" width="56" height="16"/>
+				<textElement>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{advyear}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="311" y="4" width="60" height="16"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Org Code:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="371" y="4" width="92" height="16"/>
+				<textElement>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{orgcode}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="26" splitType="Stretch">
+			<textField>
+				<reportElement x="435" y="4" width="80" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="1" width="555" height="1"/>
+			</line>
+			<textField evaluationTime="Report">
+				<reportElement x="515" y="4" width="40" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<noData>
+		<band height="338">
+			<textField>
+				<reportElement x="87" y="162" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Market:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="167" y="162" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{MARKET}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="87" y="194" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Organisation:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="167" y="226" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{ADV_CODE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="87" y="242" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Year:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="87" y="120" width="380" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["There are no records that match your search criteria."]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="167" y="242" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[($P{YEAR} + new java.lang.Integer(new java.text.SimpleDateFormat("yyyy").format(new java.util.Date())) - new java.lang.Integer(new java.text.SimpleDateFormat("yyyy").format($P{EXEC_DATE})))]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="87" y="178" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Currency:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="87" y="226" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Adviser:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="167" y="178" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{CURRENCY}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="87" y="146" width="380" height="16" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Search Criteria"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="167" y="194" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{ORG_CODE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="108" y="80" width="338" height="26" forecolor="#000000"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="20" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Brokerage Earned By Adviser]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="167" y="258" width="300" height="17"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("dd/MM/yyyy").format($P{EXEC_DATE})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="87" y="258" width="80" height="17"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Exec Date:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="167" y="210" width="300" height="16"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{BRANCH_ID}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="87" y="210" width="80" height="16"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Branch:"]]></textFieldExpression>
+			</textField>
+		</band>
+	</noData>
+</jasperReport>
