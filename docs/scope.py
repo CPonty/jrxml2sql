@@ -62,15 +62,13 @@
 
 -----------------------------------------------------------------------
 	query2workbench.py:
+		- convert jasper.sql to workbench.sql (fixed files)
 		- "dumb" conversion - doesn't try to match parameter types
 			and default values; doesn't support sql studio; don't care
 			about language	
-		- config file:
-			language="" # "postgres", "sqlserver" or "all"
-			debug=False # True or False
+		- no config file
 		- no mappings_[language].py files
-	 - jrxml2sql steps:
-		> load and verify config file
+	 - steps:
 		> extract $P, $P!, $X parameters from query
 		> extract a set of unique $X statements from query
 		> make a copy of the query
@@ -89,5 +87,6 @@
 			-- fixed query
 			--divider
 			-- original query, commented out
-		> write file(s), terminal dump etc
+		> write file, terminal dump etc
 
+-----------------------------------------------------------------------
